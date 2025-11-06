@@ -1,0 +1,244 @@
+//Assignment 2
+//HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My To-Do List</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>📋 My To-Do List</h1>
+    <div id="points">⭐ Points: <span id="pointCount">0</span></div>
+
+    <input type="text" id="taskInput" placeholder="Enter a new task..."><p></p>
+    <button onclick="addTask()">➕ Add Task</button><p></p>
+
+    <ul id="taskList"></ul>
+  </div>
+
+  <div id="quoteBox" class="hidden">
+    <p id="quoteText"></p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+//css
+body {
+  background: url('https://plus.unsplash.com/premium_photo-1683309563562-aa3cfde9ed10?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dG9kbyUyMGxpc3R8ZW58MHx8MHx8fDA%3D') 
+              no-repeat center center/cover;
+  background-attachment: fixed; 
+  
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 500px;
+  margin: 50px auto;
+  background: #fff8f0;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.2em;
+  color: #ff6f61;
+}
+
+#taskInput {
+  width: 70%;
+  padding: 10px;
+  font-size: 1em;
+  border-radius: 10px;
+  border: 2px solid #ffb347;
+}
+
+button {
+  padding: 10px 15px;
+  font-size: 1em;
+  margin-left: 10px;
+  border: none;
+  border-radius: 10px;
+  background-color: #ffb347;
+  color: white;
+  cursor: pointer;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+li {
+  margin: 10px 0;
+  font-size: 1.2em;
+  background-color: #fff0f5;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.emoji {
+  position: fixed;
+  font-size: 2rem;
+  animation: floatUp 2s ease-out forwards;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
+
+#points {
+  font-size: 1.2em;
+  color: #f57c00;
+  margin-bottom: 10px;
+}
+
+#quoteBox {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff9c4;
+  border: 2px solid #fdd835;
+  padding: 20px;
+  border-radius: 15px;
+  font-size: 1.2em;
+  color: #5d4037;
+  display: none;
+  z-index: 1001;
+}
+
+#quoteBox.show {
+  display: block;
+  animation: fadeInOut 4s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: scale(0.8); }
+  10% { opacity: 1; transform: scale(1); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: scale(0.8); }
+}
+
+//script
+let completedTasks = 0;
+let points = 0;
+
+const quotes = [
+  "You did it! Keep going!",
+  "Be Consistent!",
+  "Great job! 🎉",
+  "Keep up the awesome work!",
+  "You make it look easy!"
+];
+
+function addTask() {
+  const taskInput = document.getElementById("taskInput");
+  const taskText = taskInput.value.trim();
+  if (!taskText) return;
+
+  const taskList = document.getElementById("taskList");
+
+  const li = document.createElement("li");
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = taskText;
+
+  const buttonDiv = document.createElement("div");
+  buttonDiv.className = "task-buttons";
+
+  const doneBtn = document.createElement("button");
+  doneBtn.textContent = "✅ Done";
+  doneBtn.onclick = () => completeTask(doneBtn);
+
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "✏️ Edit";
+  editBtn.onclick = () => {
+    const newText = prompt("Edit your task:", textSpan.textContent);
+    if (newText !== null && newText.trim() !== "") {
+      textSpan.textContent = newText.trim();
+    }
+  };
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "🗑️ Delete";
+  deleteBtn.onclick = () => deleteTask(deleteBtn);
+
+  buttonDiv.appendChild(doneBtn);
+  buttonDiv.appendChild(editBtn);
+  buttonDiv.appendChild(deleteBtn);
+
+  li.appendChild(textSpan);
+  li.appendChild(buttonDiv);
+  taskList.appendChild(li);
+
+  taskInput.value = "";
+}
+
+function deleteTask(button) {
+  const li = button.closest("li");
+  li.remove();
+}
+
+function completeTask(button) {
+  const li = button.closest("li");
+  li.style.textDecoration = "line-through";
+  li.style.opacity = "0.6";
+  button.disabled = true;
+
+  launchEmojiConfetti();
+
+  points += 1;
+  document.getElementById("pointCount").textContent = points;
+
+  completedTasks++;
+  if (completedTasks % 3 === 0) {
+    showQuote();
+  }
+}
+
+function launchEmojiConfetti() {
+  const emojis = ['🎉', '🌟', '😄', '✨', '🎈', '🎊', '👏', '🦄', '💖'];
+  for (let i = 0; i < 30; i++) {
+    const emoji = document.createElement("div");
+    emoji.className = "emoji";
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    emoji.style.left = Math.random() * 100 + "vw";
+    emoji.style.top = "100vh";
+    emoji.style.position = "absolute";
+    emoji.style.fontSize = "24px";
+    emoji.style.zIndex = "1000";
+    emoji.style.animation = "floatUp 2s ease-out forwards";
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 2000);
+  }
+}
+
+function showQuote() {
+  const quoteBox = document.getElementById("quoteBox");
+  const quoteText = document.getElementById("quoteText");
+  quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+  quoteBox.classList.add("show");
+  setTimeout(() => quoteBox.classList.remove("show"), 4000);
+}
